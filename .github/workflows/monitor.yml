@@ -1,0 +1,37 @@
+name: 🕊️ Spiritual Autopilot
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'manual_url.txt'
+
+jobs:
+  generate-assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 📦 Installer les dépendances
+        run: pip install -r requirements.txt
+      - name: 🚀 Lancer le pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python monitor.py
+      - name: 💾 Sauvegarder les fichiers
+        run: |
+          git config --global user.name "Spiritual Autopilot Bot"
+          git config --global user.email "bot@autopilot.local"
+          git add -A
+          git commit -m "🎬 Nouvelle vidéo générée [skip ci]" || echo "Rien à committer"
+          git pull --rebase origin main || true
+          git push || echo "Push échoué"
